@@ -47,19 +47,20 @@ pipeline {
         }
 
         stage('Build Image') {
-            steps {
-                sh "rm -rf ocp && mkdir -p ocp/deployments"
-                sh "cp -R . ocp/deployments"
+    steps {
+        sh "rm -rf ocp && mkdir -p ocp/deployments"
+        sh "rsync -av --exclude 'ocp' ./ ocp/deployments"
 
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject() {
-                            openshift.selector("bc", env.APP_NAME).startBuild("--from-dir=./ocp", "--follow", "--wait=true")
-                        }
-                    }
+        script {
+            openshift.withCluster() {
+                openshift.withProject() {
+                    openshift.selector("bc", env.APP_NAME).startBuild("--from-dir=./ocp", "--follow", "--wait=true")
                 }
             }
         }
+    }
+}
+
 
         stage('Deploy Application') {
             when {
